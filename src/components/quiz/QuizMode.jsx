@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { CheckCircle, XCircle, Award } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CheckCircle, XCircle, Award, Clock } from 'lucide-react';
 import ProgressHeader from '../common/ProgressHeader.jsx';
 import NavigationHeader from '../common/NavigationHeader.jsx';
 import VoiceControls from '../common/VoiceControls.jsx';
@@ -27,6 +27,11 @@ const QuizMode = ({
   const [perfectFormulation, setPerfectFormulation] = useState(false);
   const [matchDetails, setMatchDetails] = useState(null);
   
+  // Timer states for oral questions
+  const [answerStartTime, setAnswerStartTime] = useState(null);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [timerActive, setTimerActive] = useState(false);
+  
   if (!session || !session.items[currentIndex]) {
     return null;
   }
@@ -35,11 +40,41 @@ const QuizMode = ({
   const isLastQuestion = currentIndex >= session.items.length - 1;
 
   // Update userAnswer when transcript changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (transcript) {
       setUserAnswer(transcript);
     }
   }, [transcript]);
+
+  // Start timer when user begins answering oral questions
+  useEffect(() => {
+    if (currentItem.type === 'oral' && userAnswer.length > 0 && !answerStartTime && !showFeedback) {
+      setAnswerStartTime(Date.now());
+      setTimerActive(true);
+      setTimeElapsed(0);
+    }
+  }, [userAnswer, currentItem.type, answerStartTime, showFeedback]);
+
+  // Timer update effect
+  useEffect(() => {
+    let interval = null;
+    if (timerActive && answerStartTime) {
+      interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - answerStartTime) / 1000);
+        setTimeElapsed(elapsed);
+      }, 1000);
+    } else if (!timerActive) {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [timerActive, answerStartTime]);
+
+  // Reset timer when question changes or feedback is shown
+  useEffect(() => {
+    setAnswerStartTime(null);
+    setTimeElapsed(0);
+    setTimerActive(false);
+  }, [currentIndex, showFeedback]);
 
   const handleMCQSelect = (index) => {
     setUserAnswer(index.toString());
@@ -99,6 +134,10 @@ const QuizMode = ({
     setShowFeedback(false);
     setPerfectFormulation(false);
     setMatchDetails(null);
+    // Reset timer
+    setAnswerStartTime(null);
+    setTimeElapsed(0);
+    setTimerActive(false);
     onNext();
   };
 
@@ -107,6 +146,10 @@ const QuizMode = ({
     setShowFeedback(false);
     setPerfectFormulation(false);
     setMatchDetails(null);
+    // Reset timer
+    setAnswerStartTime(null);
+    setTimeElapsed(0);
+    setTimerActive(false);
     onPrevious();
   };
 
@@ -114,6 +157,21 @@ const QuizMode = ({
     if (session.mode === 'quiz-mcq') return 'Quiz QCM';
     if (session.mode === 'quiz-oral') return 'Quiz Oral';
     return 'Quiz';
+  };
+
+  // Helper functions for timer
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const isMinimumTimeMet = () => {
+    return currentItem.type !== 'oral' || timeElapsed >= 30;
+  };
+
+  const getRemainingTime = () => {
+    return Math.max(0, 30 - timeElapsed);
   };
 
   return (
@@ -201,15 +259,48 @@ const QuizMode = ({
                     listenButtonText="Répondre à l'oral"
                   />
                 )}
+
+                {/* Timer display for oral questions */}
+                {currentItem.type === 'oral' && answerStartTime && (
+                  <div className={`flex items-center gap-3 p-3 rounded-lg border-2 ${
+                    isMinimumTimeMet() 
+                      ? 'border-green-200 bg-green-50 text-green-800' 
+                      : 'border-orange-200 bg-orange-50 text-orange-800'
+                  }`}>
+                    <Clock className="w-5 h-5" />
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        Temps de réponse: {formatTime(timeElapsed)}
+                      </div>
+                      {!isMinimumTimeMet() && (
+                        <div className="text-sm">
+                          Minimum requis: 30 secondes ({getRemainingTime()}s restantes)
+                        </div>
+                      )}
+                      {isMinimumTimeMet() && (
+                        <div className="text-sm">
+                          ✅ Durée minimum atteinte - Vous pouvez valider votre réponse
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             <button
               onClick={handleSubmitAnswer}
-              disabled={!userAnswer.trim()}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg transition-colors"
+              disabled={!userAnswer.trim() || !isMinimumTimeMet()}
+              className={`w-full py-3 rounded-lg transition-colors ${
+                !userAnswer.trim() || !isMinimumTimeMet()
+                  ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              }`}
             >
-              Valider ma réponse
+              {currentItem.type === 'oral' && !isMinimumTimeMet() && userAnswer.trim()
+                ? `Attendez ${getRemainingTime()}s pour valider`
+                : 'Valider ma réponse'
+              }
             </button>
           </div>
         )}
