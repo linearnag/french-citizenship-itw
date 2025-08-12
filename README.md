@@ -1,0 +1,1 @@
+This is an app to help you practice your knowledge of French language, French culture and other items in preparation for the French naturalisation interview.
