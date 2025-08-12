@@ -93,7 +93,26 @@ const FrenchCitizenshipCoach = () => {
   // Session management
   const startSession = (selectedMode) => {
     setMode(selectedMode);
-    const session = generateSession(selectedMode, 10);
+    
+    let session;
+    let questionTypes;
+    
+    switch(selectedMode) {
+      case 'learning':
+        session = generateSession(selectedMode, 10);
+        break;
+      case 'quiz-mcq':
+        questionTypes = ['mcq'];
+        session = generateSession(selectedMode, 10, questionTypes);
+        break;
+      case 'quiz-oral':
+        questionTypes = ['oral', 'short'];
+        session = generateSession(selectedMode, 10, questionTypes);
+        break;
+      default:
+        session = generateSession(selectedMode, 10);
+    }
+    
     setCurrentSession(session);
     setCurrentIndex(0);
     setAnswersHistory([]);
@@ -102,7 +121,12 @@ const FrenchCitizenshipCoach = () => {
     setTranscript('');
     
     if (voiceEnabled) {
-      const modeText = selectedMode === 'learning' ? 'apprentissage' : 'quiz';
+      const modeTexts = {
+        'learning': 'apprentissage',
+        'quiz-mcq': 'quiz de questions à choix multiples',
+        'quiz-oral': 'quiz oral'
+      };
+      const modeText = modeTexts[selectedMode] || 'quiz';
       setTimeout(() => {
         handleSpeak(`Bonjour ! Commençons votre session de ${modeText}. Aujourd'hui nous allons pratiquer dix questions sur la France.`);
       }, 500);
@@ -189,11 +213,12 @@ const FrenchCitizenshipCoach = () => {
         onPrevious={handlePrevious}
         onSpeak={handleSpeak}
         onComplete={handleSessionComplete}
+        onHome={resetToHome}
       />
     );
   }
 
-  if (mode === 'quiz' && currentSession) {
+  if ((mode === 'quiz-mcq' || mode === 'quiz-oral') && currentSession) {
     return (
       <QuizMode
         session={currentSession}
@@ -207,6 +232,8 @@ const FrenchCitizenshipCoach = () => {
         onSpeak={handleSpeak}
         onAnswer={handleAnswerSubmission}
         onNext={handleNext}
+        onPrevious={handlePrevious}
+        onHome={resetToHome}
       />
     );
   }

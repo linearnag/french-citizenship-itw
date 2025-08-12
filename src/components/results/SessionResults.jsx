@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle, XCircle, Award } from 'lucide-react';
+import NavigationHeader from '../common/NavigationHeader.jsx';
 import { QUESTIONS_DATABASE } from '../../data/questions.js';
 
 const SessionResults = ({ 
@@ -13,6 +14,13 @@ const SessionResults = ({
   if (mode === 'learning') {
     return (
       <div className="max-w-4xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+        <NavigationHeader
+          title="Session Terminée"
+          subtitle="Apprentissage complété avec succès"
+          onHome={onReturnHome}
+          showBackButton={false}
+        />
+        
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-blue-900 mb-2">📚 Session d'apprentissage terminée !</h1>
           <p className="text-blue-700">Vous avez étudié {sessionLength} cartes</p>
@@ -58,6 +66,13 @@ const SessionResults = ({
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+      <NavigationHeader
+        title="Résultats du Quiz"
+        subtitle={`Score final: ${stats.percentage}%`}
+        onHome={onReturnHome}
+        showBackButton={false}
+      />
+      
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-indigo-900 mb-2">🎉 Session terminée !</h1>
         <p className="text-indigo-700">Voici vos résultats détaillés</p>

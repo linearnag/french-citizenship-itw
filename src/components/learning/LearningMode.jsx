@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Volume2 } from 'lucide-react';
 import ProgressHeader from '../common/ProgressHeader.jsx';
+import NavigationHeader from '../common/NavigationHeader.jsx';
 import VoiceControls from '../common/VoiceControls.jsx';
 import { DOMAINS } from '../../data/domains.js';
 
@@ -12,7 +13,8 @@ const LearningMode = ({
   onNext,
   onPrevious,
   onSpeak,
-  onComplete
+  onComplete,
+  onHome
 }) => {
   const [showAnswer, setShowAnswer] = useState(false);
   
@@ -39,6 +41,13 @@ const LearningMode = ({
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+      <NavigationHeader
+        title="Mode Apprentissage"
+        subtitle="Étudiez à votre rythme avec des explications détaillées"
+        onHome={onHome}
+        showBackButton={false}
+      />
+      
       <ProgressHeader 
         currentIndex={currentIndex}
         total={session.items.length}

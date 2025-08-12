@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle, XCircle, Award } from 'lucide-react';
 import ProgressHeader from '../common/ProgressHeader.jsx';
+import NavigationHeader from '../common/NavigationHeader.jsx';
 import VoiceControls from '../common/VoiceControls.jsx';
 import { DOMAINS } from '../../data/domains.js';
 import { calculateSemanticMatch, checkFormulationQuality } from '../../utils/scoring.js';
@@ -16,7 +17,9 @@ const QuizMode = ({
   onStopListening,
   onSpeak,
   onAnswer,
-  onNext
+  onNext,
+  onPrevious,
+  onHome
 }) => {
   const [userAnswer, setUserAnswer] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
@@ -99,8 +102,30 @@ const QuizMode = ({
     onNext();
   };
 
+  const handlePrevious = () => {
+    setUserAnswer('');
+    setShowFeedback(false);
+    setPerfectFormulation(false);
+    setMatchDetails(null);
+    onPrevious();
+  };
+
+  const getQuizTitle = () => {
+    if (session.mode === 'quiz-mcq') return 'Quiz QCM';
+    if (session.mode === 'quiz-oral') return 'Quiz Oral';
+    return 'Quiz';
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+      <NavigationHeader
+        title={getQuizTitle()}
+        subtitle="Testez vos connaissances et obtenez votre score"
+        onBack={currentIndex > 0 ? handlePrevious : null}
+        onHome={onHome}
+        showBackButton={currentIndex > 0}
+      />
+      
       <ProgressHeader 
         currentIndex={currentIndex}
         total={session.items.length}

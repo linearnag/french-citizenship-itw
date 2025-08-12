@@ -2,18 +2,27 @@ import { QUESTIONS_DATABASE } from '../data/questions.js';
 
 /**
  * Generate a randomized learning/quiz session
- * @param {string} mode - 'learning' or 'quiz'
+ * @param {string} mode - 'learning', 'quiz-mcq', or 'quiz-oral'
  * @param {number} count - Number of questions (default: 10)
+ * @param {string[]} questionTypes - Filter by question types (optional)
  * @returns {Object} Session object with questions
  */
-export const generateSession = (mode, count = 10) => {
-  const shuffled = [...QUESTIONS_DATABASE].sort(() => 0.5 - Math.random());
+export const generateSession = (mode, count = 10, questionTypes = null) => {
+  let availableQuestions = [...QUESTIONS_DATABASE];
+  
+  // Filter by question types if specified
+  if (questionTypes && questionTypes.length > 0) {
+    availableQuestions = availableQuestions.filter(q => questionTypes.includes(q.type));
+  }
+  
+  const shuffled = availableQuestions.sort(() => 0.5 - Math.random());
   const items = shuffled.slice(0, Math.min(count, shuffled.length));
   
   return {
     id: Date.now(),
     items,
     mode,
+    questionTypes: questionTypes || ['mcq', 'short', 'oral'],
     practiceCount: items.filter(q => ['mcq', 'short'].includes(q.type)).length,
     testCount: items.filter(q => q.type === 'oral').length,
     createdAt: new Date().toISOString()
