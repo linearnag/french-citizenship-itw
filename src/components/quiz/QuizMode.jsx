@@ -166,11 +166,11 @@ const QuizMode = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const isMinimumTimeMet = () => {
+  const isRecordingComplete = () => {
     return currentItem.type !== 'oral' || timeElapsed >= 30;
   };
 
-  const getRemainingTime = () => {
+  const getRemainingRecordingTime = () => {
     return Math.max(0, 30 - timeElapsed);
   };
 
@@ -263,23 +263,23 @@ const QuizMode = ({
                 {/* Timer display for oral questions */}
                 {currentItem.type === 'oral' && answerStartTime && (
                   <div className={`flex items-center gap-3 p-3 rounded-lg border-2 ${
-                    isMinimumTimeMet() 
+                    isRecordingComplete() 
                       ? 'border-green-200 bg-green-50 text-green-800' 
-                      : 'border-orange-200 bg-orange-50 text-orange-800'
+                      : 'border-blue-200 bg-blue-50 text-blue-800'
                   }`}>
                     <Clock className="w-5 h-5" />
                     <div className="flex-1">
                       <div className="font-medium">
                         Temps de réponse: {formatTime(timeElapsed)}
                       </div>
-                      {!isMinimumTimeMet() && (
+                      {!isRecordingComplete() && (
                         <div className="text-sm">
-                          Minimum requis: 30 secondes ({getRemainingTime()}s restantes)
+                          🎙️ Durée suggérée pour réponse orale: 30s ({getRemainingRecordingTime()}s restantes)
                         </div>
                       )}
-                      {isMinimumTimeMet() && (
+                      {isRecordingComplete() && (
                         <div className="text-sm">
-                          ✅ Durée minimum atteinte - Vous pouvez valider votre réponse
+                          ✅ Durée suggérée atteinte - Réponse complète
                         </div>
                       )}
                     </div>
@@ -290,17 +290,14 @@ const QuizMode = ({
 
             <button
               onClick={handleSubmitAnswer}
-              disabled={!userAnswer.trim() || !isMinimumTimeMet()}
+              disabled={!userAnswer.trim()}
               className={`w-full py-3 rounded-lg transition-colors ${
-                !userAnswer.trim() || !isMinimumTimeMet()
+                !userAnswer.trim()
                   ? 'bg-gray-300 cursor-not-allowed text-gray-500'
                   : 'bg-indigo-600 hover:bg-indigo-700 text-white'
               }`}
             >
-              {currentItem.type === 'oral' && !isMinimumTimeMet() && userAnswer.trim()
-                ? `Attendez ${getRemainingTime()}s pour valider`
-                : 'Valider ma réponse'
-              }
+              Valider ma réponse
             </button>
           </div>
         )}
